@@ -1,12 +1,77 @@
 # RAW Links — MassageNow
 
 Owner/Repo: tranlongdollar / gpthelpmsnow  
-Nhánh: main
+Branch/Ref: main
 
-| Mục đích         | File path (repo)                              | RAW (branch)                                                                                                                                      |
-|------------------|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| Front controller | massagenow.vn/public_html/index.php           | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/index.php                                 |
+| Purpose | Repo path | RAW URL |
+|---|---|---|
+| App core | massagenow.vn/app/auth.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/auth.php |
+| App core | massagenow.vn/app/config.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/config.php |
+| App core | massagenow.vn/app/db.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/db.php |
+| App core | massagenow.vn/app/i18n.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/i18n.php |
+| App core | massagenow.vn/app/mail.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/mail.php |
+| App core | massagenow.vn/app/session.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/app/session.php |
+| File | massagenow.vn/public_html/_install_create_admin.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/_install_create_admin.php |
+| Admin | massagenow.vn/public_html/admin/cities.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/cities.php |
+| Admin | massagenow.vn/public_html/admin/citimport.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/citimport.php |
+| Admin | massagenow.vn/public_html/admin/city_delete.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/city_delete.php |
+| Admin | massagenow.vn/public_html/admin/city_links.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/city_links.php |
+| Admin | massagenow.vn/public_html/admin/city_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/city_save.php |
+| Admin | massagenow.vn/public_html/admin/index.bk.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/index.bk.php |
+| Admin | massagenow.vn/public_html/admin/index.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/index.php |
+| Admin | massagenow.vn/public_html/admin/login.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/login.php |
+| Admin | massagenow.vn/public_html/admin/logout.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/logout.php |
+| Admin | massagenow.vn/public_html/admin/order-view.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/order-view.php |
+| Admin | massagenow.vn/public_html/admin/orders.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/orders.php |
+| Admin | massagenow.vn/public_html/admin/page_massageteam.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/page_massageteam.php |
+| Admin | massagenow.vn/public_html/admin/page_massageteam_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/page_massageteam_save.php |
+| Admin | massagenow.vn/public_html/admin/service_delete.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/service_delete.php |
+| Admin | massagenow.vn/public_html/admin/service_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/service_save.php |
+| Admin | massagenow.vn/public_html/admin/services.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/services.php |
+| Admin | massagenow.vn/public_html/admin/skill_delete.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/skill_delete.php |
+| Admin | massagenow.vn/public_html/admin/skill_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/skill_save.php |
+| Admin | massagenow.vn/public_html/admin/staff.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/staff.php |
+| Admin | massagenow.vn/public_html/admin/staff_delete.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/staff_delete.php |
+| Admin | massagenow.vn/public_html/admin/staff_edit.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/staff_edit.php |
+| Admin | massagenow.vn/public_html/admin/staff_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/staff_save.php |
+| Admin | massagenow.vn/public_html/admin/testmail.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/testmail.php |
+| Admin | massagenow.vn/public_html/admin/translation_delete.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/translation_delete.php |
+| Admin | massagenow.vn/public_html/admin/translation_save.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/translation_save.php |
+| Admin | massagenow.vn/public_html/admin/translations.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/admin/translations.php |
+| API | massagenow.vn/public_html/api/booking.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/api/booking.php |
+| API | massagenow.vn/public_html/api/bookingBK.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/api/bookingBK.php |
+| API | massagenow.vn/public_html/api/bookingbk2.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/api/bookingbk2.php |
+| File | massagenow.vn/public_html/db_test.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/db_test.php |
+| Front controller | massagenow.vn/public_html/index.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/index.php |
+| File | massagenow.vn/public_html/index__.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/index__.php |
+| File | massagenow.vn/public_html/link.html | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/link.html |
+| File | massagenow.vn/public_html/robots.txt | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/robots.txt |
+| File | massagenow.vn/public_html/router_diag.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/router_diag.php |
+| File | massagenow.vn/public_html/sitemap.xml.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/sitemap.xml.php |
+| File | massagenow.vn/public_html/upload/en.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/en.png |
+| File | massagenow.vn/public_html/upload/ja.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/ja.png |
+| File | massagenow.vn/public_html/upload/ko.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/ko.png |
+| File | massagenow.vn/public_html/upload/nv1.jpg | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/nv1.jpg |
+| File | massagenow.vn/public_html/upload/nv2.jpg | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/nv2.jpg |
+| File | massagenow.vn/public_html/upload/nv3.jpg | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/nv3.jpg |
+| File | massagenow.vn/public_html/upload/ru.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/ru.png |
+| File | massagenow.vn/public_html/upload/th.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/th.png |
+| File | massagenow.vn/public_html/upload/vn.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/vn.png |
+| File | massagenow.vn/public_html/upload/zh.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/public_html/upload/zh.png |
+| View | massagenow.vn/views/404.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/404.php |
+| View | massagenow.vn/views/city.bbkphp | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/city.bbkphp |
+| View | massagenow.vn/views/city.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/city.php |
+| View | massagenow.vn/views/city__BK.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/city__BK.php |
+| View | massagenow.vn/views/city_bk.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/city_bk.php |
+| View | massagenow.vn/views/home.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/home.php |
+| View | massagenow.vn/views/path_to_flags/en.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/en.png |
+| View | massagenow.vn/views/path_to_flags/ja.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/ja.png |
+| View | massagenow.vn/views/path_to_flags/ko.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/ko.png |
+| View | massagenow.vn/views/path_to_flags/ru.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/ru.png |
+| View | massagenow.vn/views/path_to_flags/th.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/th.png |
+| View | massagenow.vn/views/path_to_flags/vn.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/vn.png |
+| View | massagenow.vn/views/path_to_flags/zh.png | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/path_to_flags/zh.png |
+| View | massagenow.vn/views/select-city.php | https://raw.githubusercontent.com/tranlongdollar/gpthelpmsnow/refs/heads/main/massagenow.vn/views/select-city.php |
 
 ## Ghi chú
-- Khi cần thêm file: chỉ cần cung cấp *đường dẫn repo*, mình sẽ tự tạo RAW URL theo nhánh `main` và thêm vào bảng này.
-
+- Sinh tự động từ Git Trees API. Chạy lại sau mỗi commit để cập nhật rawlink.md.
