@@ -1,5 +1,4 @@
 name: Generate RAW Links (to gpthelpmsnow/rawlink.md)
-
 on:
   push:
     branches: [ "main" ]
