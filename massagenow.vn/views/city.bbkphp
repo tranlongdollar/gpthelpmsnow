@@ -1,0 +1,145 @@
+<?php
+declare(strict_types=1);
+/**
+ * views/city.php — BƯỚC 12 (bản cho URL dạng /{lang}/{slug})
+ * Biến nhận từ index.php: $city, $lang, $txt, $staff, $services
+ * Yêu cầu sẵn: /app/config.php, /app/db.php, /app/i18n.php
+ */
+
+require_once __DIR__ . '/../app/config.php';
+require_once __DIR__ . '/../app/db.php';
+require_once __DIR__ . '/../app/i18n.php';
+
+// Lấy slug và năm hiện tại
+$slug = $city['slug'] ?? '';
+$year = date('Y');
+
+// Lấy tên thành phố theo ngôn ngữ (nếu có) từ bảng city_i18n, fallback về tên gốc
+$city_name_local = db_value(
+    "SELECT name FROM city_i18n WHERE city_id=? AND lang_code=? LIMIT 1",
+    [$city['id'], $lang]
+) ?: $city['name'];
+
+// Format dịch vụ theo ngôn ngữ (dùng i18n để thay %service_name% và %thanh_pho%)
+$format = $txt['services.item.format'] ?? '%service_name% tại %thanh_pho%';
+
+// Render tiêu đề dịch vụ theo ngôn ngữ
+$svcTitle = strtr($format, [
+    '%service_name%' => $sv['name'],
+    '%thanh_pho%'    => $city_name_local, // Dùng tên thành phố theo ngôn ngữ
+]);
+
+?>
+<div class="font-medium">
+    <?= e($svcTitle) ?> (<?= (int)$sv['duration'] ?>′)
+</div>
+
+<!-- Title & description (đổi biến %thanh_pho%, %year%) -->
+<title><?= e(i18n_get($txt, 'meta.title', ['thanh_pho' => $city_name_local, 'year' => $year], 'Massagenow')) ?></title>
+<meta name="description" content="<?= e(i18n_get($txt, 'meta.description', ['thanh_pho' => $city_name_local, 'year' => $year], '')) ?>">
+
+<!-- Canonical & hreflang cho dạng /{lang}/{slug} -->
+<?php
+$canonical = rtrim(BASE_URL, '/') . '/' . $lang . '/' . $slug;
+$hreflangs = [];
+foreach (get_all_langs($pdo) as $code) {
+    $hreflangs[] = [
+        'code' => $code,
+        'url'  => rtrim(BASE_URL, '/') . '/' . $code . '/' . $slug,
+        'rel'  => 'alternate',
+    ];
+}
+?>
+
+<!-- Thẻ nav -->
+<nav>
+    <a href="#team"><?= e(i18n_get($txt, 'nav.links.team', [], 'Nhân viên')) ?></a>
+    <a href="#services"><?= e(i18n_get($txt, 'nav.links.services', [], 'Dịch vụ')) ?></a>
+    <a href="#booking"><?= e(i18n_get($txt, 'nav.links.booking', [], 'Booking')) ?></a>
+</nav>
+
+<!-- Hero Section -->
+<section>
+    <h1><?= e(i18n_get($txt, 'hero.heading', ['thanh_pho' => $city_name_local], $city_name_local)) ?></h1>
+    <p><?= e(i18n_get($txt, 'hero.paragraph_html', ['thanh_pho' => $city_name_local], '')) ?></p>
+    <a href="#booking"><?= e(i18n_get($txt, 'hero.cta', [], 'Đặt lịch ngay')) ?></a>
+</section>
+
+<!-- Team Section -->
+<section id="team">
+    <h2><?= e(i18n_get($txt, 'team.title', [], 'Nhân viên massage gần đây:')) ?></h2>
+    <p><?= e(i18n_get($txt, 'team.subtitle', [], '')) ?></p>
+
+    <?php if (empty($staff)): ?>
+        <p>Chưa có nhân sự để hiển thị.</p>
+    <?php else: ?>
+        <div>
+            <?php foreach ($staff as $s): ?>
+                <article>
+                    <?php if (!empty($s['photo_url'])): ?>
+                        <img src="<?= e($s['photo_url']) ?>" alt="<?= e($s['name'] ?: $city_name_local) ?>">
+                    <?php endif; ?>
+                    <h3><?= e($s['name'] ?: '') ?></h3>
+                    <p><?= e($s['title'] ?: '') ?></p>
+                    <?php if (!empty($s['tagline'])): ?>
+                        <p><?= e($s['tagline']) ?></p>
+                    <?php endif; ?>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+
+<!-- Booking Section -->
+<section id="booking">
+    <h2><?= e(i18n_get($txt, 'booking.title', [], 'Form Booking')) ?></h2>
+    <p><?= e(i18n_get($txt, 'booking.subtitle', [], 'Điền thông tin, chúng tôi sẽ liên hệ xác nhận.')) ?></p>
+
+    <form method="post" action="/api/booking.php">
+        <input type="hidden" name="city_id" value="<?= e((string)$city['id']) ?>">
+        <label>
+            <span><?= e(i18n_get($txt, 'booking.fields.name', [], 'Họ và tên')) ?></span>
+            <input type="text" name="name" required>
+        </label>
+        <label>
+            <span><?= e(i18n_get($txt, 'booking.fields.email', [], 'Email')) ?></span>
+            <input type="email" name="email">
+        </label>
+        <label>
+            <span><?= e(i18n_get($txt, 'booking.fields.phone', [], 'Số điện thoại')) ?></span>
+            <input type="text" name="phone">
+        </label>
+        <label>
+            <span><?= e(i18n_get($txt, 'booking.fields.note', [], 'Ghi chú')) ?></span>
+            <textarea name="note" rows="4"></textarea>
+        </label>
+        <button type="submit"><?= e(i18n_get($txt, 'booking.button', [], 'Gửi đặt lịch')) ?></button>
+    </form>
+</section>
+
+<!-- Services Section -->
+<section id="services">
+    <h2><?= e(i18n_get($txt, 'nav.links.services', [], 'Dịch vụ')) ?></h2>
+
+    <?php if (empty($services)): ?>
+        <p>Chưa có dịch vụ để hiển thị.</p>
+    <?php else: ?>
+        <div>
+            <?php foreach ($services as $sv): ?>
+                <div>
+                    <?= e($sv['name']) ?> <?= e($city_name_local) ?> (<?= e((string)$sv['duration']) ?> phút)
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+
+<!-- Footer Section -->
+<footer>
+    <div>
+        <?= e(i18n_get($txt, 'footer.copy', ['thanh_pho' => $city_name_local, 'year' => $year], '© '.$year.' Massagenow')) ?>
+    </div>
+</footer>
+
+</body>
+</html>
