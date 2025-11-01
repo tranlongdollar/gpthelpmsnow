@@ -1,99 +1,27 @@
 <?php
-declare(strict_types=1);
-/**
- * gen_rawlinks.php
- * Tạo bảng RAW URL (Markdown) cho toàn repo (hoặc 1 thư mục con).
- * Dùng:
- *   php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]
- */
+// Tạo rawlink.md đầy đủ
 parse_str(implode('&', array_slice($argv, 1)), $a);
-$owner  = (string)($a['owner'] ?? '');
-$repo   = (string)($a['repo']  ?? '');
-$ref    = (string)($a['ref']   ?? 'main');
-$base   = trim((string)($a['base'] ?? ''), '/');
-$output = (string)($a['output'] ?? 'rawlink.md');
-if ($owner === '' || $repo === '') {
-    fwrite(STDERR, "Usage: php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]\n");
-    exit(1);
+$owner=$a['owner']??''; $repo=$a['repo']??''; $ref=$a['ref']??'main';
+$api="https://api.github.com/repos/$owner/$repo/git/trees/".rawurlencode($ref)."?recursive=1";
+$h=['Accept: application/vnd.github+json','User-Agent: rawlinks-generator'];
+$ch=curl_init($api); curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_HTTPHEADER=>$h]); $resp=curl_exec($ch); $code=curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+if($code!==200||!$resp){fwrite(STDERR,"ERR trees"); exit(1);}
+$tree=json_decode($resp,true)['tree']??[];
+$commit="https://api.github.com/repos/$owner/$repo/commits/".rawurlencode($ref);
+$ch=curl_init($commit); curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_HTTPHEADER=>$h]); $cres=curl_exec($ch); curl_close($ch);
+$sha=json_decode($cres,true)['sha']??'';
+$rawB="https://raw.githubusercontent.com/$owner/$repo/refs/heads/$ref/"; $rawS=$sha?"https://raw.githubusercontent.com/$owner/$repo/$sha/":'';
+$out="# RAW Links — $owner/$repo\n\nBranch/Ref: $ref".($sha?"  (pinned SHA: `$sha`)":"")."\n\n| Purpose | Repo path | RAW (branch) | RAW (pinned) |\n|---|---|---|---|\n";
+foreach($tree as $n){
+  if(($n['type']??'')!=='blob') continue; $p=$n['path'];
+  $purpose='File';
+  if(preg_match('~/public_html/index\.php$~',$p)) $purpose='Front controller';
+  elseif(preg_match('~/public_html/admin/~',$p)) $purpose='Admin';
+  elseif(preg_match('~/public_html/api/~',$p)) $purpose='API';
+  elseif(preg_match('~/views/~',$p)) $purpose='View';
+  elseif(preg_match('~/app/~',$p)) $purpose='App core';
+  elseif(preg_match('~\.sql$~',$p)) $purpose='SQL';
+  elseif(preg_match('~\.md$~i',$p)) $purpose='Doc';
+  $out.="| $purpose | $p | ".$rawB.$p." | ".($sha?$rawS.$p:'-')." |\n";
 }
-// Git Trees API (recursive)
-$api = "https://api.github.com/repos/{$owner}/{$repo}/git/trees/".rawurlencode($ref)."?recursive=1";
-$ch = curl_init($api);
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT        => 30,
-    CURLOPT_HTTPHEADER     => [
-        'Accept: application/vnd.github+json',
-        'User-Agent: rawlinks-generator'
-    ],
-]);
-$resp = curl_exec($ch);
-$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-if ($code !== 200 || !$resp) { fwrite(STDERR, "[ERR] API $code: $api\n"); exit(2); }
-$json = json_decode($resp, true);
-$tree = $json['tree'] ?? [];
-if (!$tree) { fwrite(STDERR, "[ERR] Empty tree\n"); exit(3); }
-
-// Lấy SHA commit hiện tại (pinned)
-$commitApi = "https://api.github.com/repos/{$owner}/{$repo}/commits/".rawurlencode($ref);
-$ch2 = curl_init($commitApi);
-curl_setopt_array($ch2, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT        => 30,
-    CURLOPT_HTTPHEADER     => [
-        'Accept: application/vnd.github+json',
-        'User-Agent: rawlinks-generator'
-    ],
-]);
-$cres = curl_exec($ch2);
-$ccode = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
-curl_close($ch2);
-$shaPinned = '';
-if ($ccode === 200 && $cres) {
-    $cjson = json_decode($cres, true);
-    if (!empty($cjson['sha'])) $shaPinned = $cjson['sha'];
-}
-
-// Gom file (blob). Nếu có base thì chỉ liệt kê dưới base
-$files = [];
-foreach ($tree as $n) {
-    if (($n['type'] ?? '') !== 'blob') continue;
-    $p = $n['path'] ?? '';
-    if ($p === '') continue;
-    if ($base !== '' && strpos($p, $base.'/') !== 0 && $p !== $base) continue;
-    $files[] = $p;
-}
-sort($files, SORT_NATURAL);
-
-// Đảm bảo thư mục output tồn tại
-$dir = dirname($output);
-if ($dir !== '' && $dir !== '.' && !is_dir($dir)) @mkdir($dir, 0777, true);
-
-// RAW link theo branch & theo SHA
-$rawBranchBase = "https://raw.githubusercontent.com/{$owner}/{$repo}/refs/heads/{$ref}/";
-$rawShaBase    = $shaPinned ? "https://raw.githubusercontent.com/{$owner}/{$repo}/{$shaPinned}/" : '';
-
-// Ghi Markdown ở ROOT (ngang README.md)
-$md  = "# RAW Links — {$owner}/{$repo}\n\n";
-$md .= "Branch/Ref: {$ref}";
-if ($shaPinned) $md .= "  (pinned SHA: `{$shaPinned}`)";
-$md .= "\n\n| Purpose | Repo path | RAW (branch) | RAW (pinned) |\n|---|---|---|---|\n";
-foreach ($files as $p) {
-    $purpose = 'File';
-    if (preg_match('~/public_html/index\.php$~', $p))   $purpose = 'Front controller';
-    elseif (preg_match('~/public_html/admin/~', $p))    $purpose = 'Admin';
-    elseif (preg_match('~/public_html/api/~', $p))      $purpose = 'API';
-    elseif (preg_match('~/views/~', $p))                $purpose = 'View';
-    elseif (preg_match('~/app/~', $p))                  $purpose = 'App core';
-    elseif (preg_match('~\.sql$~', $p))                 $purpose = 'SQL';
-    elseif (preg_match('~\.md$~i', $p))                 $purpose = 'Doc';
-    $rawB = $rawBranchBase . $p;
-    $rawS = $shaPinned ? ($rawShaBase . $p) : '-';
-    $md  .= "| {$purpose} | {$p} | {$rawB} | {$rawS} |\n";
-}
-$md .= "\n## Notes\n- Generated by scripts/gen_rawlinks.php\n";
-if (file_put_contents($output, $md) === false) { echo $md; exit(4); }
-fwrite(STDERR, "[OK] wrote {$output}\n");
+file_put_contents('rawlink.md',$out);
