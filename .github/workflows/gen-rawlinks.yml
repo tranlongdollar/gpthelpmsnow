@@ -20,7 +20,7 @@ jobs:
         with:
           php-version: "8.2"
 
-      # Tạo script PHP sinh rawlink.md (tự túc, không phụ thuộc repo có sẵn)
+      # Tạo script PHP sinh rawlink.md (tự túc, không phụ thuộc repo đã có sẵn script)
       - name: Create generator script
         run: |
           mkdir -p scripts
@@ -28,92 +28,57 @@ jobs:
           <?php
           /**
            * gen_rawlinks.php
-           * Sinh bảng RAW URL (Markdown) cho toàn repo hoặc dưới 1 thư mục base.
-           * Cách chạy:
-           *   php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> base=<subdir>
-           * Ví dụ:
-           *   php scripts/gen_rawlinks.php owner=tranlongdollar repo=gpthelpmsnow ref=main base=massagenow.vn > rawlink.md
+           * Tạo bảng RAW URL (Markdown) cho toàn bộ repo GitHub (hoặc 1 thư mục con).
+           *
+           * Cách dùng (quét toàn repo):
+           *   php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=main output=massagenow.vn/rawlink.md
+           *
+           * Tham số:
+           *   owner=<owner>     bắt buộc
+           *   repo=<repo>       bắt buộc
+           *   ref=<branch|sha>  mặc định: main
+           *   base=<subdir>     (tuỳ chọn) chỉ liệt kê dưới thư mục này (vd: massagenow.vn)
+           *   output=<path>     (tuỳ chọn) file đầu ra (mặc định: rawlink.md hoặc massagenow.vn/rawlink.md nếu tồn tại)
            */
+          declare(strict_types=1);
+
           parse_str(implode('&', array_slice($argv, 1)), $a);
-          $owner = $a['owner'] ?? '';
-          $repo  = $a['repo']  ?? '';
-          $ref   = $a['ref']   ?? 'main';
-          $base  = trim($a['base'] ?? '', '/');
+          $owner  = (string)($a['owner'] ?? '');
+          $repo   = (string)($a['repo']  ?? '');
+          $ref    = (string)($a['ref']   ?? 'main');
+          $base   = trim((string)($a['base'] ?? ''), '/');
+          $output = (string)($a['output'] ?? '');
 
           if ($owner === '' || $repo === '') {
-            fwrite(STDERR, "Usage: php scripts/gen_rawlinks.php owner=<owner> repo=<repo> [ref=<branch|sha>] [base=<subdir>]\n");
-            exit(1);
+              fwrite(STDERR, "Usage: php scripts/gen_rawlinks.php owner=<owner> repo=<repo> [ref=<branch|sha>] [base=<subdir>] [output=<path>]\n");
+              exit(1);
           }
 
-          // Dùng Git Trees API (recursive=1) để liệt kê toàn bộ cây file
+          // --- gọi Git Trees API (recursive=1) ---
           $api = "https://api.github.com/repos/{$owner}/{$repo}/git/trees/".rawurlencode($ref)."?recursive=1";
           $ch = curl_init($api);
           curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_USERAGENT      => 'rawlinks-generator',
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTPHEADER     => ['Accept: application/vnd.github+json'],
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_FOLLOWLOCATION => true,
+              CURLOPT_TIMEOUT        => 30,
+              CURLOPT_HTTPHEADER     => [
+                  'Accept: application/vnd.github+json',
+                  'User-Agent: rawlinks-generator'
+              ],
           ]);
           $resp = curl_exec($ch);
           $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
           curl_close($ch);
           if ($code !== 200 || !$resp) {
-            fwrite(STDERR, "GitHub API error: HTTP {$code}\n");
-            exit(2);
+              fwrite(STDERR, "[ERR] GitHub API HTTP {$code} for {$api}\n");
+              exit(2);
           }
-
           $json = json_decode($resp, true);
           $tree = $json['tree'] ?? [];
-          $files = [];
-          foreach ($tree as $node) {
-            if (($node['type'] ?? '') !== 'blob') continue;
-            $path = $node['path'] ?? '';
-            if ($base !== '' && strpos($path, $base.'/') !== 0 && $path !== $base) continue;
-            $files[] = $path;
-          }
-          sort($files, SORT_NATURAL);
-
-          $rawBase = "https://raw.githubusercontent.com/{$owner}/{$repo}/refs/heads/{$ref}/";
-
-          echo "# RAW Links — MassageNow\n\n";
-          echo "Owner/Repo: {$owner} / {$repo}  \n";
-          echo "Branch/Ref: {$ref}\n\n";
-          echo "| Purpose | Repo path | RAW URL |\n|---|---|---|\n";
-
-          foreach ($files as $p) {
-            $purpose = 'File';
-            if (preg_match('~/public_html/index\.php$~', $p))   $purpose = 'Front controller';
-            elseif (preg_match('~/public_html/admin/~', $p))    $purpose = 'Admin';
-            elseif (preg_match('~/public_html/api/~', $p))      $purpose = 'API';
-            elseif (preg_match('~/views/~', $p))                $purpose = 'View';
-            elseif (preg_match('~/app/~', $p))                  $purpose = 'App core';
-            elseif (preg_match('~\.sql$~', $p))                 $purpose = 'SQL';
-
-            $url = $rawBase . $p;
-            echo '| ' . $purpose . ' | ' . $p . ' | ' . $url . " |\n";
+          if (!$tree) {
+              fwrite(STDERR, "[ERR] Empty tree\n");
+              exit(3);
           }
 
-          echo "\n## Ghi chú\n";
-          echo "- Sinh tự động từ Git Trees API. Chạy lại sau mỗi commit để cập nhật rawlink.md.\n";
-          PHP
-
-      - name: Generate rawlink.md
-        run: |
-          REPO_FULL="${{ github.repository }}"   # ví dụ: tranlongdollar/gpthelpmsnow
-          OWNER="${REPO_FULL%%/*}"
-          REPO="${REPO_FULL#*/}"
-          # Base quét là thư mục mã chính của bạn
-          php scripts/gen_rawlinks.php owner="$OWNER" repo="$REPO" ref=main base=massagenow.vn > rawlink.md
-          echo "Generated rawlink.md"
-
-      - name: Commit rawlink.md (if changed)
-        run: |
-          if ! git diff --quiet; then
-            git config user.name  "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add rawlink.md scripts/gen_rawlinks.php
-            git commit -m "chore(rawlinks): auto-generate rawlink.md"
-            git push
-          fi
-
+          // Lấy SHA commit (pinned) để có cột RAW ổn định theo commit
+          $commitApi = "https://api.github.com/repos/{$owner}/{$repo}/comm
