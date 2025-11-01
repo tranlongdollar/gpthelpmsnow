@@ -2,21 +2,23 @@
 declare(strict_types=1);
 /**
  * gen_rawlinks.php
- * Sinh bảng RAW URL (Markdown) cho toàn repo (hoặc 1 thư mục con).
- * Dùng:
+ * Sinh bảng RAW URL (Markdown) cho toàn repo (hoặc một thư mục con).
+ * Cách dùng:
  *   php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]
  */
 parse_str(implode('&', array_slice($argv, 1)), $a);
 $owner  = (string)($a['owner'] ?? '');
 $repo   = (string)($a['repo']  ?? '');
-$ref    = (string)($a['ref']   ?? 'main');       // nhánh hoặc SHA
-$base   = trim((string)($a['base'] ?? ''), '/'); // thư mục con (optional)
-$output = (string)($a['output'] ?? 'rawlink.md');
+$ref    = (string)($a['ref']   ?? 'main');        // nhánh hoặc SHA
+$base   = trim((string)($a['base'] ?? ''), '/');  // thư mục con (optional)
+$output = (string)($a['output'] ?? 'rawlink.md'); // file đầu ra
+
 if ($owner === '' || $repo === '') {
     fwrite(STDERR, "Usage: php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]\n");
     exit(1);
 }
-// Git Trees API (recursive=1)
+
+// Git Trees API (recursive) để lấy toàn bộ cây file tại ref
 $api = "https://api.github.com/repos/{$owner}/{$repo}/git/trees/".rawurlencode($ref)."?recursive=1";
 $ch = curl_init($api);
 curl_setopt_array($ch, [
@@ -36,7 +38,7 @@ $json = json_decode($resp, true);
 $tree = $json['tree'] ?? [];
 if (!$tree) { fwrite(STDERR, "[ERR] Empty tree\n"); exit(3); }
 
-// Lấy SHA commit hiện tại (pinned)
+// Lấy SHA commit pinned để có cột RAW cố định theo commit
 $commitApi = "https://api.github.com/repos/{$owner}/{$repo}/commits/".rawurlencode($ref);
 $ch2 = curl_init($commitApi);
 curl_setopt_array($ch2, [
@@ -57,7 +59,7 @@ if ($ccode === 200 && $cres) {
     if (!empty($cjson['sha'])) $shaPinned = $cjson['sha'];
 }
 
-// Gom file (blob). Nếu có base thì chỉ liệt kê dưới base
+// Lọc chỉ các file (blob). Nếu có base thì chỉ liệt kê dưới base
 $files = [];
 foreach ($tree as $n) {
     if (($n['type'] ?? '') !== 'blob') continue;
@@ -72,7 +74,7 @@ sort($files, SORT_NATURAL);
 $dir = dirname($output);
 if ($dir !== '' && $dir !== '.' && !is_dir($dir)) @mkdir($dir, 0777, true);
 
-// Build RAW bases
+// RAW link theo branch & theo SHA pinned
 $rawBranchBase = "https://raw.githubusercontent.com/{$owner}/{$repo}/refs/heads/{$ref}/";
 $rawShaBase    = $shaPinned ? "https://raw.githubusercontent.com/{$owner}/{$repo}/{$shaPinned}/" : '';
 
