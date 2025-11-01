@@ -1,7 +1,8 @@
-name: Generate RAW Links (to gpthelpmsnow/rawlink.md)
+name: Generate RAW Links (root)
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -16,12 +17,20 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Resolve repo/branch
+        id: vars
+        run: |
+          echo "REPO_FULL=${GITHUB_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "OWNER=${GITHUB_REPOSITORY%%/*}" >> $GITHUB_OUTPUT
+          echo "REPO=${GITHUB_REPOSITORY#*/}"   >> $GITHUB_OUTPUT
+          echo "REF_NAME=${GITHUB_REF_NAME:-main}" >> $GITHUB_OUTPUT
+
       - name: Setup PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
 
-      # Tự tạo script PHP để quét toàn bộ repo và sinh RAW URLs
+      # Tạo script tạo RAW link (không phụ thuộc code sẵn có)
       - name: Create generator script
         run: |
           mkdir -p scripts
@@ -30,23 +39,21 @@ jobs:
           declare(strict_types=1);
           /**
            * gen_rawlinks.php
-           * Sinh bảng RAW URL (Markdown) cho toàn repo (hoặc một thư mục con).
-           * Cách dùng:
+           * Tạo bảng RAW URL (Markdown) cho toàn repo (hoặc 1 thư mục con).
+           * Dùng:
            *   php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]
            */
           parse_str(implode('&', array_slice($argv, 1)), $a);
           $owner  = (string)($a['owner'] ?? '');
           $repo   = (string)($a['repo']  ?? '');
-          $ref    = (string)($a['ref']   ?? 'main');        // nhánh hoặc SHA
-          $base   = trim((string)($a['base'] ?? ''), '/');  // thư mục con (optional)
-          $output = (string)($a['output'] ?? 'rawlink.md'); // file đầu ra
-
+          $ref    = (string)($a['ref']   ?? 'main');
+          $base   = trim((string)($a['base'] ?? ''), '/');
+          $output = (string)($a['output'] ?? 'rawlink.md');
           if ($owner === '' || $repo === '') {
               fwrite(STDERR, "Usage: php scripts/gen_rawlinks.php owner=<owner> repo=<repo> ref=<branch|sha> [base=<subdir>] [output=<file>]\n");
               exit(1);
           }
-
-          // Git Trees API (recursive) để lấy toàn bộ cây file tại ref
+          // Git Trees API (recursive)
           $api = "https://api.github.com/repos/{$owner}/{$repo}/git/trees/".rawurlencode($ref)."?recursive=1";
           $ch = curl_init($api);
           curl_setopt_array($ch, [
@@ -66,7 +73,7 @@ jobs:
           $tree = $json['tree'] ?? [];
           if (!$tree) { fwrite(STDERR, "[ERR] Empty tree\n"); exit(3); }
 
-          // Lấy SHA commit pinned để có cột RAW cố định theo commit
+          // Lấy SHA commit hiện tại (pinned)
           $commitApi = "https://api.github.com/repos/{$owner}/{$repo}/commits/".rawurlencode($ref);
           $ch2 = curl_init($commitApi);
           curl_setopt_array($ch2, [
@@ -87,7 +94,7 @@ jobs:
               if (!empty($cjson['sha'])) $shaPinned = $cjson['sha'];
           }
 
-          // Lọc chỉ các file (blob). Nếu có base thì chỉ liệt kê dưới base
+          // Gom file (blob). Nếu có base thì chỉ liệt kê dưới base
           $files = [];
           foreach ($tree as $n) {
               if (($n['type'] ?? '') !== 'blob') continue;
@@ -102,11 +109,11 @@ jobs:
           $dir = dirname($output);
           if ($dir !== '' && $dir !== '.' && !is_dir($dir)) @mkdir($dir, 0777, true);
 
-          // RAW link theo branch & theo SHA pinned
+          // RAW link theo branch & theo SHA
           $rawBranchBase = "https://raw.githubusercontent.com/{$owner}/{$repo}/refs/heads/{$ref}/";
           $rawShaBase    = $shaPinned ? "https://raw.githubusercontent.com/{$owner}/{$repo}/{$shaPinned}/" : '';
 
-          // Ghi Markdown
+          // Ghi Markdown ở ROOT (ngang README.md)
           $md  = "# RAW Links — {$owner}/{$repo}\n\n";
           $md .= "Branch/Ref: {$ref}";
           if ($shaPinned) $md .= "  (pinned SHA: `{$shaPinned}`)";
@@ -129,22 +136,20 @@ jobs:
           fwrite(STDERR, "[OK] wrote {$output}\n");
           PHP
 
-      - name: Generate rawlink.md into gpthelpmsnow/
+      - name: Generate rawlink.md at repo root (next to README.md)
         run: |
-          REPO_FULL="${{ github.repository }}"   # vd: tranlongdollar/gpthelpmsnow
-          OWNER="${REPO_FULL%%/*}"
-          REPO="${REPO_FULL#*/}"
-          mkdir -p gpthelpmsnow
-          # Quét toàn repo (không giới hạn base), ghi đúng chỗ yêu cầu:
-          php scripts/gen_rawlinks.php owner="$OWNER" repo="$REPO" ref=main output="gpthelpmsnow/rawlink.md"
-          echo "Generated gpthelpmsnow/rawlink.md"
+          OWNER="${{ steps.vars.outputs.OWNER }}"
+          REPO="${{ steps.vars.outputs.REPO }}"
+          REF="${{ steps.vars.outputs.REF_NAME }}"
+          php scripts/gen_rawlinks.php owner="$OWNER" repo="$REPO" ref="$REF" output="rawlink.md"
+          echo "Generated rawlink.md at repo root"
 
-      - name: Commit rawlink.md (if changed)
+      - name: Commit rawlink.md if changed
         run: |
           if ! git diff --quiet; then
             git config user.name  "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add gpthelpmsnow/rawlink.md scripts/gen_rawlinks.php
-            git commit -m "chore(rawlinks): update gpthelpmsnow/rawlink.md (main)"
+            git add rawlink.md scripts/gen_rawlinks.php
+            git commit -m "chore(rawlinks): update rawlink.md at root for ${{ steps.vars.outputs.REF_NAME }}"
             git push
           fi
